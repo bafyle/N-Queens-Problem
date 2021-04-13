@@ -95,7 +95,7 @@ def main(args):
         numpyExist = True
     except ImportError:
         pass
-
+    foundSolutions = 0
     queens = mapSize
     map = createMap(mapSize)
     
@@ -117,10 +117,13 @@ def main(args):
             else:
                 printMap(map)
             rowNumber, colNumber = backtrack(map, rowNumber, colNumber, mapSize)
+            foundSolutions += 1
         if rowNumber < 0:
             break
     endTime = time.time()
-    print(f"execution time: {endTime- startTime}")
+    if foundSolutions:
+        print(f"execution time: {endTime- startTime}")
+    print(f"Found Solutions: {foundSolutions}")
 
 if __name__ == "__main__": # if the file is not imported
     main(sys.argv) # run the main function and pass the arguments 
