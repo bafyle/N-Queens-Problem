@@ -3,9 +3,13 @@ import time
 
 def printMap(map: list):
     """ Custom function for printing the board """
-    for row in map:
-        print(row)
-    print()
+    printString = ""
+    for i in map:
+        for c in i:
+            printString += c + " "
+        printString += '\n'
+    print(printString, end='\n\n')
+            
 
 def createMap(dimension: int) -> list:
     """
@@ -89,12 +93,6 @@ def main(args):
         mapSize = 4
         print("No arguments passed, using the default size which is 4....")
 
-    numpyExist = False
-    try:
-        import numpy as np
-        numpyExist = True
-    except ImportError:
-        pass
     foundSolutions = 0
     queens = mapSize
     map = createMap(mapSize)
@@ -112,10 +110,7 @@ def main(args):
         else:
             rowNumber, colNumber = backtrack(map, rowNumber, colNumber, mapSize)
         if rowNumber >= mapSize:
-            if numpyExist:
-                print(np.matrix(map), end='\n\n')
-            else:
-                printMap(map)
+            printMap(map)
             rowNumber, colNumber = backtrack(map, rowNumber, colNumber, mapSize)
             foundSolutions += 1
         if rowNumber < 0:
@@ -126,4 +121,4 @@ def main(args):
     print(f"Found Solutions: {foundSolutions}")
 
 if __name__ == "__main__": # if the file is not imported
-    main(sys.argv) # run the main function and pass the arguments 
+    main(sys.argv) # run the main function and pass the arguments
