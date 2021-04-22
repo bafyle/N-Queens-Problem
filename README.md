@@ -13,8 +13,8 @@ $ python3 NQueensProblem.py 8
 ~~~
 
 * If no arguments passed, the sciprt creates a 4x4 board and tries to solve it.
-* The script also display how much time did it take to calculate and print the solutions.
-* The execution time is started from the moment the algorithm started, not from the beginnig of the script
+* The script also displays how much time did it take to calculate and print the solutions.
+* The execution time is calculated from the moment the algorithm started, not from the beginnig of script execution
 
 * Example of the output:
 ~~~
