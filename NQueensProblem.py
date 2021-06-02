@@ -88,13 +88,11 @@ def main(args):
         mapSize = int(args[1])
     except ValueError:
         print("Passed argument must be an integer")
-        quit(1)
+        sys.exit(1)
     except IndexError:
         mapSize = 4
-        print("No arguments passed, using the default size which is 4....")
 
     foundSolutions = 0
-    queens = mapSize
     map = createMap(mapSize)
     
     rowNumber = 0
