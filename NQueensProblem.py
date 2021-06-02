@@ -94,7 +94,6 @@ def main(args):
 
     foundSolutions = 0
     map = createMap(mapSize)
-    
     rowNumber = 0
     colNumber = 0
     startTime = time.time()
@@ -115,7 +114,7 @@ def main(args):
             break
     endTime = time.time()
     if foundSolutions:
-        print(f"execution time: {endTime- startTime}")
+        print(f"Execution time: {endTime - startTime}")
     print(f"Found Solutions: {foundSolutions}")
 
 if __name__ == "__main__": # if the file is not imported
