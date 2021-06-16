@@ -1,17 +1,17 @@
 import sys
 import time
 
-def printMap(map: list):
+def printBoard(board: list):
     """ Custom function for printing the board """
     printString = ""
-    for i in map:
+    for i in board:
         for c in i:
             printString += c + " "
         printString += '\n'
     print(printString, end='\n\n')
             
 
-def createMap(dimension: int) -> list:
+def createBoard(dimension: int) -> list:
     """
     Returning a 2D list full of dots
     """
@@ -21,7 +21,7 @@ def createMap(dimension: int) -> list:
         map.append(innerList)
     return map
 
-def suitable(row : int, col: int, map: list):
+def suitable(row : int, col: int, board: list):
 
     """
     This function checks if a position is suitable to put a queen
@@ -29,12 +29,12 @@ def suitable(row : int, col: int, map: list):
     """
 
     # check row for queens
-    ithRow = map[row]
+    ithRow = board[row]
     if 'q' in ithRow:
         return False
     
     # check column for queens
-    ithCol = [map[i][col] for i in range(len(map))]
+    ithCol = [board[i][col] for i in range(len(board))]
     if 'q' in ithCol:
         return False
 
@@ -42,8 +42,8 @@ def suitable(row : int, col: int, map: list):
     tempRow = row - min(row, col)
     tempCol = col - min(row, col)
     diagonal1 = list()
-    while tempRow < len(map) and tempCol < len(map):
-        diagonal1.append(map[tempRow][tempCol])
+    while tempRow < len(board) and tempCol < len(board):
+        diagonal1.append(board[tempRow][tempCol])
         tempRow += 1
         tempCol += 1
     if 'q' in diagonal1:
@@ -52,11 +52,11 @@ def suitable(row : int, col: int, map: list):
     diagonal2 = list()
     tempRow = row
     tempCol = col
-    while tempRow != 0 and tempCol != len(map) - 1:
+    while tempRow != 0 and tempCol != len(board) - 1:
         tempCol += 1
         tempRow -= 1
-    while tempRow < len(map) and tempCol > -1:
-        diagonal2.append(map[tempRow][tempCol])
+    while tempRow < len(board) and tempCol > -1:
+        diagonal2.append(board[tempRow][tempCol])
         tempRow += 1
         tempCol -= 1
     if 'q' in diagonal2:
@@ -65,50 +65,50 @@ def suitable(row : int, col: int, map: list):
     # if no queen detected, then it's a suitable place
     return True
 
-def backtrack(map: list, rowNumber: int, colNumber: int, mapSize: int):
+def backtrack(board: list, rowNumber: int, colNumber: int, mapSize: int):
     """
     This function takes the board, row, column and the size of the board
     and it returns the nearest possible position to start again from
     """
     rowNumber -= 1
-    colNumber = map[rowNumber].index('q')
-    map[rowNumber][colNumber] = '.'
+    colNumber = board[rowNumber].index('q')
+    board[rowNumber][colNumber] = '.'
     if colNumber == mapSize - 1:
         rowNumber -= 1
         if rowNumber == -1:
             return -1, -1
-        colNumber = map[rowNumber].index('q')
-        map[rowNumber][colNumber] = '.'
+        colNumber = board[rowNumber].index('q')
+        board[rowNumber][colNumber] = '.'
     colNumber += 1
     return rowNumber, colNumber
 
 
 def main(args):
     try:
-        mapSize = int(args[1])
+        boardSize = int(args[1])
     except ValueError:
         print("Passed argument must be an integer")
         sys.exit(1)
     except IndexError:
-        mapSize = 4
+        boardSize = 4
 
     foundSolutions = 0
-    map = createMap(mapSize)
+    board = createBoard(boardSize)
     rowNumber = 0
     colNumber = 0
     startTime = time.time()
     while True:
-        if suitable(row=rowNumber, col=colNumber, map=map):
-            map[rowNumber][colNumber] = 'q'
+        if suitable(row=rowNumber, col=colNumber, board=board):
+            board[rowNumber][colNumber] = 'q'
             rowNumber += 1
             colNumber = 0
-        elif colNumber != mapSize - 1:
+        elif colNumber != boardSize - 1:
             colNumber += 1
         else:
-            rowNumber, colNumber = backtrack(map, rowNumber, colNumber, mapSize)
-        if rowNumber >= mapSize:
-            printMap(map)
-            rowNumber, colNumber = backtrack(map, rowNumber, colNumber, mapSize)
+            rowNumber, colNumber = backtrack(board, rowNumber, colNumber, boardSize)
+        if rowNumber >= boardSize:
+            printBoard(board)
+            rowNumber, colNumber = backtrack(board, rowNumber, colNumber, boardSize)
             foundSolutions += 1
         if rowNumber < 0:
             break
