@@ -1,7 +1,8 @@
+# import the necessary libraries
 import sys
 import time
 
-def printBoard(board: list):
+def printBoard(board: list) -> None:
     """ Custom function for printing the board """
     printString = ""
     for i in board:
@@ -11,64 +12,59 @@ def printBoard(board: list):
     print(printString, end='\n\n')
             
 
-def createBoard(dimension: int) -> list:
+def createBoard(size: int) -> list:
     """
     Returning a 2D list full of dots
     """
     map = list()
-    for _ in range(dimension):
-        innerList = ['.' for f in range(dimension)]
+    for _ in range(size):
+        innerList = ['.'] * size
         map.append(innerList)
     return map
 
-def suitable(row : int, col: int, board: list):
-
+def suitable(row : int, col: int, board: list) -> bool:
     """
     This function checks if a position is suitable to put a queen
     in it or not
     """
-
     # check row for queens
     ithRow = board[row]
     if 'q' in ithRow:
         return False
     
     # check column for queens
-    ithCol = [board[i][col] for i in range(len(board))]
-    if 'q' in ithCol:
-        return False
+    for i in range(len(board)):
+        if board[i][col] == 'q':
+            return False
 
     # check diagonal for queens
     tempRow = row - min(row, col)
     tempCol = col - min(row, col)
-    diagonal1 = list()
     while tempRow < len(board) and tempCol < len(board):
-        diagonal1.append(board[tempRow][tempCol])
+        if board[tempRow][tempCol] == 'q':
+            return False
         tempRow += 1
         tempCol += 1
-    if 'q' in diagonal1:
-        return False
     
-    diagonal2 = list()
     tempRow = row
     tempCol = col
     while tempRow != 0 and tempCol != len(board) - 1:
         tempCol += 1
         tempRow -= 1
     while tempRow < len(board) and tempCol > -1:
-        diagonal2.append(board[tempRow][tempCol])
+        if board[tempRow][tempCol] == 'q':
+            return False
         tempRow += 1
         tempCol -= 1
-    if 'q' in diagonal2:
-        return False
     
     # if no queen detected, then it's a suitable place
     return True
 
-def backtrack(board: list, rowNumber: int, colNumber: int, mapSize: int):
+def backtrack(board: list, rowNumber: int, colNumber: int, mapSize: int) -> tuple:
     """
-    This function takes the board, row, column and the size of the board
-    and it returns the nearest possible position to start again from
+    This function takes the current row and column and tries to backtrack to
+    position where there is new possible solution
+    return a tuple with the new row and column
     """
     rowNumber -= 1
     colNumber = board[rowNumber].index('q')
@@ -83,7 +79,7 @@ def backtrack(board: list, rowNumber: int, colNumber: int, mapSize: int):
     return rowNumber, colNumber
 
 
-def main(args):
+def main(args) -> None:
     try:
         boardSize = int(args[1])
     except ValueError:
@@ -97,8 +93,8 @@ def main(args):
     rowNumber = 0
     colNumber = 0
     startTime = time.time()
-    while True:
-        if suitable(row=rowNumber, col=colNumber, board=board):
+    while rowNumber >= 0:
+        if suitable(rowNumber, colNumber, board):
             board[rowNumber][colNumber] = 'q'
             rowNumber += 1
             colNumber = 0
@@ -110,8 +106,6 @@ def main(args):
             printBoard(board)
             rowNumber, colNumber = backtrack(board, rowNumber, colNumber, boardSize)
             foundSolutions += 1
-        if rowNumber < 0:
-            break
     endTime = time.time()
     if foundSolutions:
         print(f"Execution time: {endTime - startTime}")
