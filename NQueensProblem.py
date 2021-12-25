@@ -1,16 +1,31 @@
 # import the necessary libraries
 import sys
 import time
+import logging
+import threading
+import copy
+from typing import List
 
-def printBoard(board: list) -> None:
-    """ Custom function for printing the board """
-    printString = ""
-    for i in board:
-        for c in i:
-            printString += c + " "
-        printString += '\n'
-    print(printString, end='\n\n')
-            
+lists_queue = list()
+finished = False
+
+def printBoard() -> None:
+    global lists_queue
+    while True:
+        if any(lists_queue):
+            printString = ""
+            for i in lists_queue[0]:
+                for c in i:
+                    printString += c + " "
+                printString += '\n'
+            print(printString, end='\n')
+            lists_queue.pop(0)
+        else:
+            if not finished:
+                time.sleep(0.1)
+            else:
+                break
+
 
 def createBoard(size: int) -> list:
     """
@@ -22,54 +37,93 @@ def createBoard(size: int) -> list:
         map.append(innerList)
     return map
 
-def suitable(row : int, col: int, board: list) -> bool:
+def suitable(row : int, col: int, board: List[List[int]]) -> bool:
     """
     This function checks if a position is suitable to put a queen
     in it or not
     """
+    board_size = len(board)
+
     # check row for queens
-    ithRow = board[row]
-    if 'q' in ithRow:
+    if 'q' in board[row]:
         return False
     
     # check column for queens
-    for i in range(len(board)):
+    for i in range(board_size):
         if board[i][col] == 'q':
             return False
 
     # check diagonal for queens
-    tempRow = row - min(row, col)
-    tempCol = col - min(row, col)
-    while tempRow < len(board) and tempCol < len(board):
-        if board[tempRow][tempCol] == 'q':
+
+    # left diagonal up
+    tmp_row = row - 1
+    tmp_col = col - 1
+    while tmp_col >= 0 and tmp_row >= 0:
+        if board[tmp_row][tmp_col] == 'q':
             return False
-        tempRow += 1
-        tempCol += 1
+        tmp_row -= 1
+        tmp_col -= 1
+
+    # left diagonal down
+    tmp_row = row + 1
+    tmp_col = col + 1
+    while tmp_row < board_size and tmp_col < board_size:
+        if board[tmp_row][tmp_col] == 'q':
+            return False
+        tmp_row += 1
+        tmp_col += 1
+
+    # right diagonal up
+    tmp_row = row - 1
+    tmp_col = col + 1
+    while tmp_row < board_size and tmp_col < board_size:
+        if board[tmp_row][tmp_col] == 'q':
+            return False
+        tmp_row -= 1
+        tmp_col += 1
+
+    # right diagonal down
+    tmp_row = row + 1
+    tmp_col = col - 1
+    while tmp_row < board_size and tmp_col < board_size:
+        if board[tmp_row][tmp_col] == 'q':
+            return False
+        tmp_row += 1
+        tmp_col -= 1
     
-    tempRow = row
-    tempCol = col
-    while tempRow != 0 and tempCol != len(board) - 1:
-        tempCol += 1
-        tempRow -= 1
-    while tempRow < len(board) and tempCol > -1:
-        if board[tempRow][tempCol] == 'q':
-            return False
-        tempRow += 1
-        tempCol -= 1
+    # tempRow = row - min(row, col)
+    # tempCol = col - min(row, col)
+    # while tempRow < len(board) and tempCol < len(board):
+    #     if board[tempRow][tempCol] == 'q':
+    #         return False
+    #     tempRow += 1
+    #     tempCol += 1
+    
+    # tempRow = row
+    # tempCol = col
+    # while tempRow != 0 and tempCol != len(board) - 1:
+    #     tempCol += 1
+    #     tempRow -= 1
+    # while tempRow < len(board) and tempCol > -1:
+    #     if board[tempRow][tempCol] == 'q':
+    #         return False
+    #     tempRow += 1
+    #     tempCol -= 1
     
     # if no queen detected, then it's a suitable place
     return True
 
-def backtrack(board: list, rowNumber: int, colNumber: int, mapSize: int) -> tuple:
+def backtrack(board: List[List[int]], rowNumber: int, colNumber: int) -> tuple:
     """
     This function takes the current row and column and tries to backtrack to
     position where there is new possible solution
     return a tuple with the new row and column
     """
+    board_size = len(board)
     rowNumber -= 1
     colNumber = board[rowNumber].index('q')
     board[rowNumber][colNumber] = '.'
-    if colNumber == mapSize - 1:
+    if colNumber == board_size - 1:
         rowNumber -= 1
         if rowNumber == -1:
             return -1, -1
@@ -80,36 +134,44 @@ def backtrack(board: list, rowNumber: int, colNumber: int, mapSize: int) -> tupl
 
 
 def main(args) -> None:
+    global finished
+    logging.basicConfig(format='%(message)s', level=logging.INFO)
+    
     try:
-        boardSize = int(args[1])
+        board_size = int(args[1])
     except ValueError:
-        print("Passed argument must be an integer")
+        logging.error("Passed argument must be an integer")
         sys.exit(1)
     except IndexError:
-        boardSize = 4
+        board_size = 4
 
-    foundSolutions = 0
-    board = createBoard(boardSize)
-    rowNumber = 0
-    colNumber = 0
-    startTime = time.time()
-    while rowNumber >= 0:
-        if suitable(rowNumber, colNumber, board):
-            board[rowNumber][colNumber] = 'q'
-            rowNumber += 1
-            colNumber = 0
-        elif colNumber != boardSize - 1:
-            colNumber += 1
+    print_thread = threading.Thread(target=printBoard)
+    print_thread.start()
+
+    board = createBoard(board_size)
+    solutions_found = 0
+    row_number = 0
+    col_number = 0
+    exe_start_time = time.perf_counter()
+    while row_number >= 0:
+        if suitable(row_number, col_number, board):
+            board[row_number][col_number] = 'q'
+            row_number += 1
+            col_number = 0
+        elif col_number != board_size - 1:
+            col_number += 1
         else:
-            rowNumber, colNumber = backtrack(board, rowNumber, colNumber, boardSize)
-        if rowNumber >= boardSize:
-            printBoard(board)
-            rowNumber, colNumber = backtrack(board, rowNumber, colNumber, boardSize)
-            foundSolutions += 1
-    endTime = time.time()
-    if foundSolutions:
-        print(f"Execution time: {endTime - startTime}")
-    print(f"Found Solutions: {foundSolutions}")
+            row_number, col_number = backtrack(board, row_number, col_number)
+        if row_number >= board_size:
+            lists_queue.append(copy.deepcopy(board))
+            row_number, col_number = backtrack(board, row_number, col_number)
+            solutions_found += 1
+    finished = True
+    exe_end_time = time.perf_counter()
+    if solutions_found:
+        logging.info(f"Execution time: {exe_end_time - exe_start_time}")
+    logging.info(f"Found Solutions: {solutions_found}")
+
 
 if __name__ == "__main__": # if the file is not imported
     main(sys.argv) # run the main function and pass the arguments

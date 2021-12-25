@@ -1,5 +1,5 @@
 # N-Queens-Problem
-N Queens problem generator using backtracking written in Python
+N Queens problem generator using backtracking technique written in Python
 
 ## About the problem:
 N Queens problem is the problem of placing N chess queens on an NxN chessboard so that no two queens threaten each other; thus, a solution requires that no two queens share the same row, column, or diagonal.
@@ -12,13 +12,14 @@ N Queens problem is the problem of placing N chess queens on an NxN chessboard s
 $ python3 NQueensProblem.py 8
 ~~~
 
-* If no arguments passed, the sciprt creates a 4x4 board and generate all possible solutions to it.
-* The script also displays how much time did it take to calculate and print the solutions.
-* The execution time is calculated from the moment the algorithm started, not from the beginnig of script execution
+* If no arguments are passed, the script creates a 4x4 board and generate all possible solutions to it.
+* The script also displays how much time it took to calculate all solutions.
 
 * Example of the output:
 ~~~
 $ python3 NQueensProblem.py 4
+INFO:root:Execution time: 0.004106900000000024
+INFO:root:Found Solutions: 2
 . q . .
 . . . q
 q . . .
@@ -30,7 +31,4 @@ q . . .
 . . . q
 . q . .
 
-
-execution time: 0.0020051002502441406
-Found Solutions: 2
 ~~~
