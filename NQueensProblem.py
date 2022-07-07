@@ -141,6 +141,13 @@ def main() -> None:
         help='Create a text file with all solutions',
         action='store_true'
     )
+    arguments_prs.add_argument(
+        '-c',
+        '--console',
+        required=False,
+        help='print all solutions to the console',
+        action='store_true'
+    )
 
     parsed_args = arguments_prs.parse_args()
     board_size = 4 if parsed_args.size is None else parsed_args.size
@@ -171,7 +178,7 @@ def main() -> None:
         logging.info("Writing solutions to a text file...")
         write_solutions_to_file()
         logging.info("Done")
-    else:
+    elif parsed_args.console:
         logging.info("Printing solutions...")
         print_solutions_to_console()
         logging.info("Done")
