@@ -1,31 +1,41 @@
 # import the necessary libraries
-import sys
 import time
 import logging
-import threading
 import copy
+import argparse
 from typing import List
 
-lists_queue = list()
-finished = False
+lists_queue = []
 
-def printBoard() -> None:
+
+def print_solutions_to_console() -> None:
     global lists_queue
-    while True:
-        if any(lists_queue):
-            printString = ""
-            for i in lists_queue[0]:
-                for c in i:
-                    printString += c + " "
-                printString += '\n'
-            print(printString, end='\n')
-            lists_queue.pop(0)
-        else:
-            if not finished:
-                time.sleep(0.1)
-            else:
-                break
+    while any(lists_queue):
+        printString = ""
+        for i in lists_queue[0]:
+            for c in i:
+                printString += c + ' '
+            printString += '\n'
+        print(printString, end='\n')
+        lists_queue.pop(0)
+        
 
+
+def write_solutions_to_file() -> None:
+    global lists_queue
+    file = open("output.txt", "w")
+    while any(lists_queue):
+        printString = ""
+        for i in lists_queue[0]:
+            for c in i:
+                printString += c + ' '
+            printString += '\n'
+        file.write(printString+'\n')
+        lists_queue.pop(0)
+    file.flush()
+    file.close()
+    return
+    
 
 def createBoard(size: int) -> list:
     """
@@ -90,27 +100,6 @@ def suitable(row : int, col: int, board: List[List[int]]) -> bool:
             return False
         tmp_row += 1
         tmp_col -= 1
-    
-    # tempRow = row - min(row, col)
-    # tempCol = col - min(row, col)
-    # while tempRow < len(board) and tempCol < len(board):
-    #     if board[tempRow][tempCol] == 'q':
-    #         return False
-    #     tempRow += 1
-    #     tempCol += 1
-    
-    # tempRow = row
-    # tempCol = col
-    # while tempRow != 0 and tempCol != len(board) - 1:
-    #     tempCol += 1
-    #     tempRow -= 1
-    # while tempRow < len(board) and tempCol > -1:
-    #     if board[tempRow][tempCol] == 'q':
-    #         return False
-    #     tempRow += 1
-    #     tempCol -= 1
-    
-    # if no queen detected, then it's a suitable place
     return True
 
 def backtrack(board: List[List[int]], rowNumber: int, colNumber: int) -> tuple:
@@ -133,20 +122,28 @@ def backtrack(board: List[List[int]], rowNumber: int, colNumber: int) -> tuple:
     return rowNumber, colNumber
 
 
-def main(args) -> None:
-    global finished
+def main() -> None:
+    global is_solving_puzzles_finished
     logging.basicConfig(format='%(message)s', level=logging.INFO)
-    
-    try:
-        board_size = int(args[1])
-    except ValueError:
-        logging.error("Passed argument must be an integer")
-        sys.exit(1)
-    except IndexError:
-        board_size = 4
 
-    print_thread = threading.Thread(target=printBoard)
-    print_thread.start()
+    arguments_prs = argparse.ArgumentParser(description="Solving the N Queen problem", allow_abbrev=False)
+    arguments_prs.add_argument(
+        '-s',
+        '--size',
+        required=False,
+        type=int,
+        help='Specifying the size of the board',
+    )
+    arguments_prs.add_argument(
+        '-f',
+        '--file',
+        required=False,
+        help='Create a text file with all solutions',
+        action='store_true'
+    )
+
+    parsed_args = arguments_prs.parse_args()
+    board_size = 4 if parsed_args.size is None else parsed_args.size
 
     board = createBoard(board_size)
     solutions_found = 0
@@ -166,12 +163,19 @@ def main(args) -> None:
             lists_queue.append(copy.deepcopy(board))
             row_number, col_number = backtrack(board, row_number, col_number)
             solutions_found += 1
-    finished = True
     exe_end_time = time.perf_counter()
     if solutions_found:
         logging.info(f"Execution time: {exe_end_time - exe_start_time}")
     logging.info(f"Found Solutions: {solutions_found}")
+    if parsed_args.file:
+        logging.info("Writing solutions to a text file...")
+        write_solutions_to_file()
+        logging.info("Done")
+    else:
+        logging.info("Printing solutions...")
+        print_solutions_to_console()
+        logging.info("Done")
 
 
 if __name__ == "__main__": # if the file is not imported
-    main(sys.argv) # run the main function and pass the arguments
+    main() # run the main function and pass the arguments
