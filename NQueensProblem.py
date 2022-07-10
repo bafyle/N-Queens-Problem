@@ -3,13 +3,10 @@ import time
 import logging
 import copy
 import argparse
-from typing import List
-
-lists_queue = []
+from typing import List, Tuple
 
 
-def print_solutions_to_console() -> None:
-    global lists_queue
+def print_solutions_to_console(lists_queue: list) -> None:
     while any(lists_queue):
         printString = ""
         for i in lists_queue[0]:
@@ -21,8 +18,7 @@ def print_solutions_to_console() -> None:
         
 
 
-def write_solutions_to_file() -> None:
-    global lists_queue
+def write_solutions_to_file(lists_queue: list) -> None:
     file = open("output.txt", "w")
     while any(lists_queue):
         printString = ""
@@ -37,7 +33,7 @@ def write_solutions_to_file() -> None:
     return
     
 
-def createBoard(size: int) -> list:
+def create_board(size: int) -> list:
     """
     Returning a 2D list full of dots
     """
@@ -47,7 +43,8 @@ def createBoard(size: int) -> list:
         map.append(innerList)
     return map
 
-def suitable(row : int, col: int, board: List[List[int]]) -> bool:
+
+def is_suitable(row : int, col: int, board: List[List[int]]) -> bool:
     """
     This function checks if a position is suitable to put a queen
     in it or not
@@ -102,6 +99,7 @@ def suitable(row : int, col: int, board: List[List[int]]) -> bool:
         tmp_col -= 1
     return True
 
+
 def backtrack(board: List[List[int]], rowNumber: int, colNumber: int) -> tuple:
     """
     This function takes the current row and column and tries to backtrack to
@@ -122,43 +120,51 @@ def backtrack(board: List[List[int]], rowNumber: int, colNumber: int) -> tuple:
     return rowNumber, colNumber
 
 
-def main() -> None:
-    global is_solving_puzzles_finished
-    logging.basicConfig(format='%(message)s', level=logging.INFO)
-
-    arguments_prs = argparse.ArgumentParser(description="Solving the N Queen problem", allow_abbrev=False)
-    arguments_prs.add_argument(
+def prepare_arguments_parser(**kwargs) -> argparse.ArgumentParser:
+    args_parser = argparse.ArgumentParser(description=kwargs["description"], allow_abbrev=False)
+    args_parser.add_argument(
         '-s',
         '--size',
         required=False,
         type=int,
-        help='Specifying the size of the board',
+        help='specifying the size of the board',
     )
-    arguments_prs.add_argument(
+    args_parser.add_argument(
         '-f',
         '--file',
         required=False,
-        help='Create a text file with all solutions',
+        help='create a text file with all solutions',
         action='store_true'
     )
-    arguments_prs.add_argument(
+    args_parser.add_argument(
         '-c',
         '--console',
         required=False,
         help='print all solutions to the console',
         action='store_true'
     )
+    return args_parser
 
-    parsed_args = arguments_prs.parse_args()
-    board_size = 4 if parsed_args.size is None else parsed_args.size
 
-    board = createBoard(board_size)
+def confirming_printing_solutions_to_terminal(no_of_solutions: int):
+    if no_of_solutions > 100:
+        logging.info("Printing all solutions may take a lot of time are you sure ? (y/N)")
+        user_input = input().lower()
+        while user_input != 'y' and user_input != 'n':
+            print("Answer with y for yes and n for no")
+            user_input = input().lower()
+        return True if user_input == 'y' else False
+    return True
+
+def creating_and_solving_board(board_size: int) -> Tuple[list, int]:
+    
+    solved_puzzles_list = []
+    board = create_board(board_size)
     solutions_found = 0
     row_number = 0
     col_number = 0
-    exe_start_time = time.perf_counter()
     while row_number >= 0:
-        if suitable(row_number, col_number, board):
+        if is_suitable(row_number, col_number, board):
             board[row_number][col_number] = 'q'
             row_number += 1
             col_number = 0
@@ -167,22 +173,37 @@ def main() -> None:
         else:
             row_number, col_number = backtrack(board, row_number, col_number)
         if row_number >= board_size:
-            lists_queue.append(copy.deepcopy(board))
+            solved_puzzles_list.append(copy.deepcopy(board))
             row_number, col_number = backtrack(board, row_number, col_number)
             solutions_found += 1
+    return solved_puzzles_list, solutions_found
+
+def main() -> None:
+    logging.basicConfig(format='%(message)s', level=logging.INFO)
+
+    args_parser = prepare_arguments_parser(description="Solving the N Queen problem")
+    
+    parsed_args = args_parser.parse_args()
+    board_size = 4 if parsed_args.size is None else parsed_args.size
+
+    exe_start_time = time.perf_counter()
+    solved_puzzles_list, solutions_found = creating_and_solving_board(board_size)
     exe_end_time = time.perf_counter()
+
     if solutions_found:
         logging.info(f"Execution time: {exe_end_time - exe_start_time}")
     logging.info(f"Found Solutions: {solutions_found}")
     if parsed_args.file:
         logging.info("Writing solutions to a text file...")
-        write_solutions_to_file()
+        write_solutions_to_file(solved_puzzles_list)
         logging.info("Done")
     elif parsed_args.console:
+        confirmation = confirming_printing_solutions_to_terminal(solutions_found)
+        if confirmation == False: return
         logging.info("Printing solutions...")
-        print_solutions_to_console()
-        logging.info("Done")
+        print_solutions_to_console(solved_puzzles_list)
+        logging.info("Finished printing solutions.")
 
 
-if __name__ == "__main__": # if the file is not imported
-    main() # run the main function and pass the arguments
+if __name__ == "__main__":
+    main()
